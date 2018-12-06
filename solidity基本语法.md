@@ -145,6 +145,22 @@ contract  Test {
 }
 ```
 
+### 构造函数
+
+```js
+constructor()  public{
+    id_names[0x01] = "lily";
+    id_names[0x02] = "Jim";
+    id_names[0x02] = "Lily";
+}
+```
+
+对象在创建的时候，自动执行的函数 ，完成对象的初始化工作。
+
+构造函数只执行一次。
+
+
+
 
 
 ## 类型
@@ -267,7 +283,7 @@ function ()public payable{}
 
 当调用一个不存在的方法的时候，合约会默认的去调用匿名函数。匿名函数一般用来给合约转账。因为费用低。
 
-#### 定长字节数组
+#### 定长字节数组（byte*）
 
 1.长度：
 
@@ -476,9 +492,245 @@ contract  Test {
 
 #### 数组（Array）
 
+之前介绍的是内置数组
+
+- string(不定长)
+- bytes（不定长）
+- bytes1...bytes32（定长）
+
+##### 定长自定义数组
+
+```js
+//  类型T，长度K的数组定义为T[K]，例如：uint [5] numbers,  byte [10] names;
+contract SimpleStorage{
+
+    
+    uint[10] public arry = [1,2,3,4,5,6,7,8,9,10];
+    
+    uint public sum ;
+    
+    function sumCaculate()public returns(uint){
+        for (uint i=0;i<arry.length;i++){
+            sum +=arry[i];
+        }
+        return sum;
+    } 
+}
+```
+
+
+
+```js
+// - 内容可变
+contract SimpleStorage{
+    
+    uint[10] public arry = [1,2,3,4,5,6,7,8,9,10];
+    
+    uint public sum 
+    
+    function changeValue(uint256 i,uint256 value)public {
+        arry[i]=value;
+    }
+   
+}
+```
+
+// - 长度不可变，不支持push
+// - 支持length方法
+
+##### 不定长自定义数组
+
+定义的方法一：直接创建
+
+```js
+contract SimpleStorage{
+    //定义的方法一：直接创建
+    uint[] public arry = [1,2,3,4,5,6,7,8,9,10];
+    
+    function pushNumb(uint _numb)public{
+        arry.push(_numb);
+    }
+    
+    function getNumb()public view returns(uint[]){
+        return arry;
+    }
+    
+}
+```
+
+定义的方法二：new
+
+```js
+pragma solidity ^0.4.24;
+contract SimpleStorage{
+    //定义的方法二：在函数里面new一个
+    uint[] public arry;
+    
+    function newArry()public{
+        arry = new uint[](7);
+    }
+    
+    function getNumb()public view returns(uint[]){
+        return arry;
+    }
+    
+}
+```
+
+
+
 #### 结构体（Structs）
 
+```js
+contract SimpleStorage{
+    //定义
+    struct Student{
+        string name;
+        uint age;
+        uint score;
+        string sex;
+    }
+    
+    Student[] public student;
+    //赋值的两种方法
+    Student public stu1=Student("lily",25,95,"male");
+    Student public stu2=Student({name:"Tom",age:26,score:100,sex:"Female"});
+    
+    function assign()public {
+        student.push(stu1);
+        student.push(stu2);
+        
+        stu1.name="Alice";
+    }
+    
+    
+}
+```
 
+```js
+//返回结构体的方法
+contract SimpleStorage{
+    
+    struct Student{
+        string name;
+        uint age;
+        uint score;
+        string sex;
+    }
+    
+    Student public stu1=Student("lily",25,95,"male");
+    Student public stu2=Student({name:"Tom",age:26,score:100,sex:"Female"});
+    
+    
+    function getStruct()public view returns(string,uint,uint,string){
+        return(stu1.name,stu1.age,stu1.score,stu1.sex);
+    }
+   
+}
+```
+
+
+
+#### Maping(字典/映射/哈希表）
+
+相同的key对应的值会被覆盖。
+
+所有key都有值 ，不会抛异常，如果没有设置过某个key,会返回默认值 。
+
+```js
+contract test {
+    //id -> name
+    mapping(uint => string) id_names;
+
+    constructor()  public{
+        id_names[1] = "lily";
+        id_names[1] = "Jim";
+        id_names[1] = "Lily";
+    }
+
+    function getNameById(uint id)  public returns (string){
+        //加上storage如何赋值？
+        string memory name = id_names[id];
+        return name;
+    }
+
+    function setNameById(uint id)  public returns (string){
+        // mapping(uint => string) memory id_name = id_names;
+        // var ids = id_names;
+        id_names[id] = "Hello";
+    }
+
+
+    // function getMapLength() public returns (uint){
+    //     return id_names.length;
+    // }
+
+}
+```
+
+
+
+### 数据转换（byte1/bytes/string)
+
+![img](C:\Users\Administrator\Desktop\note\solidity\solidityLearning\assets\006tNbRwly1fubdfrruacj318k08mq4d-1544095014727.jpg)
+
+
+
+#### 固定长度数组转动态长度数组:
+
+创建bytes空间：bytes public bs = new bytes (b10.length);
+
+逐个复制：for (uint i = 0 ; i < b10.length;i++)
+
+```js
+contract SimpleStorage{
+    bytes10 public b10 = 'HelloWorld';
+    bytes public bs = new bytes (b10.length);
+    
+    function fixedToBytes()public{
+        for (uint i = 0 ; i < b10.length;i++){
+            bs[i]=b10[i];
+        }
+    }
+}
+```
+
+#### 动态长度数组（bytes）转字符串(string):
+
+直接转换：string(bytes)
+
+```js
+contract SimpleStorage{
+    bytes10 public b10 = 'HelloWorld';
+    bytes public bs = new bytes (b10.length);
+    
+    function fixedToBytes()public{
+        for (uint i = 0 ; i < b10.length;i++){
+            bs[i]=b10[i];
+        }
+    }
+    
+    string public str;
+    
+    function bytesToString()public{
+        fixedToBytes();
+        str = string(bs);
+    }
+}
+```
+
+#### 字符串（string）转动态长度数组（bytes）:
+
+```js
+contract SimpleStorage{
+    bytes public bs2;
+    string public str2='HelloWorld';
+    
+    function stringToBytes()public{
+        bs2 = bytes(str2);
+    }
+}
+```
 
 ### 数据位置
 
@@ -495,7 +747,7 @@ contract  Test {
 
 状态变量总是stroage类型的，无法更改
 
-
+#### 情况1
 
 局部变量默认是storage类型（结构体或数组，string），但是可以声明为memory类型。
 
@@ -526,7 +778,7 @@ contract testString{
 
 当然也可以指定为memory类型。这样就修改不到name的值了。
 
-
+#### 情况2
 
 对于Storage类型数据，作为函数的参数的时候，默认是memory类型的。例如
 
@@ -541,13 +793,13 @@ contract testString{
     }
     
     function setValue(string input)private {
-        num = 20;
+        num = 20;//这里设置一个num=20只是为了确认函数是不是被调用了
         bytes(input)[0]='H';
     }
 }
 ```
 
-在上面的代码中，name在call()中作为了一个一个函数的参数。相当于它的值是复制过去的。不会改变真正的name中的值。
+在上面的代码中，name在call()中作为了一个函数的参数。相当于它的值是复制过去的。不会改变真正的name中的值。
 
 但是如果是把引用函数的参数设置成storage类型的，就可以改变真正的name的值了。
 
